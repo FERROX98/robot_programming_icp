@@ -1,5 +1,5 @@
 #include "normal_localizer2d.h"
-
+#include <vector>
 #include "nicp/eigen_nicp_2d.h"
 #include "nicp/normal_estimator.h"
 
@@ -15,18 +15,55 @@ NormalLocalizer2D::NormalLocalizer2D()
  * @param map_
  */
 void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
+  
   // Set the internal map pointer
-  // TODO
-  /**
+  std::shared_ptr<Map> mappa= map_;
+  /*
+   * If the map is initialized, fill a temporary vector with world coordinates
+   * of all cells representing obstacles.
+  */
+  // Da salvare direttamente su _obst_vect 
+// std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Vector2f>> temp_vector;
+   if ( mappa->initialized() ){
+    std::cerr<<"START setMap"<<std::endl;
+    int test=0;
+
+    for (int i=0; i<mappa->rows();++i){
+      for (int j=0; j<mappa->cols(); ++j){
+        if(((CellType) mappa->grid().at(j+i*mappa->cols())) == Occupied){
+            if (test){
+              std::cerr<< "\n push cell occupied"<<std::endl;
+            }
+            _obst_vect.push_back(mappa->grid2world(cv::Point2i(i,j)));
+        }
+        if (test){
+          std::cerr <<"\n CellType ="<< (CellType) mappa->grid().at(j+i*mappa->cols()) <<" Grid coord x,y = "<< cv::Point2i(i,j)<<" World Coord -> " <<  mappa->grid2world(cv::Point2i(i,j)) << " END "<<std::endl;
+        }
+        if (test && j==10)
+                break;
+        }
+
+      if (test && i==0)
+          break;
+            
+    }
+   
+  /*
    * If the map is initialized, fill a temporary vector with world coordinates
    * of all cells representing obstacles.
    * Moreover, process normals for these points and store the resulting cloud
-   * (with normals) in _obst_vect.
+   * (with normals) (FIXED SENZA NORMALI) in _obst_vect (Vector2f).
    * Finally instantiate the KD-Tree (obst_tree_ptr) on the vector.
    */
+  NormalEstimator norm(_obst_vect,20); // scan Vector4f (x,y) (z,v) 
+ // ContainerType scan_normal;
+ // norm.get(scan_normal);
+
+
   // TODO
   // Create KD-Tree
-  // TODO
+  _obst_tree_ptr = std::shared_ptr<TreeType>(new TreeType(_obst_vect.begin(), _obst_vect.end(), 20));
+
 }
 
 /**
@@ -79,8 +116,8 @@ void NormalLocalizer2D::process(const ContainerType& scan_) {
  * @param angle_increment_
  */
 void NormalLocalizer2D::setLaserParams(float range_min_, float range_max_,
-                                       float angle_min_, float angle_max_,
-                                       float angle_increment_) {
+                                        float angle_min_, float angle_max_,
+                                        float angle_increment_) {
   // TODO
 }
 

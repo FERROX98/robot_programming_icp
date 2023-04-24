@@ -16,6 +16,11 @@
 #include "normal_localizer2d.h"
 #include "ros_bridge.h"
 
+const std::string TOPIC_SCAN = "base_scan";
+const std::string TOPIC_INITIALPOSE = "initialpose";
+const std::string TOPIC_ODOM = "odom_out";
+const std::string TOPIC_MAP = "map";
+
 // Map callback definition
 void callback_map(const nav_msgs::OccupancyGridConstPtr&);
 // Initial pose callback definition
@@ -30,27 +35,35 @@ ros::Publisher pub_scan, pub_odom;
 NormalLocalizer2D localizer;
 
 int main(int argc, char** argv) {
+
   // Initialize ROS system
-  // TODO
+  ros::init(argc, argv, "localizer_node");
+
   // Create a NodeHandle to manage the node.
   // The namespace of the node is set to global
   ros::NodeHandle nh("/");
 
   // Create shared pointer for the Map object
-  // TODO
-
-  //
-  /**
+  std::shared_ptr<Map> p(new Map);
+  map_ptr=p;
+  /*
    * Subscribe to the topics:
    * /map [nav_msgs::OccupancyGrid]
    * /initialpose [geometry_msgs::PoseWithCovarianceStamped]
    * /base_scan [sensor_msgs::LaserScan]
    * and assign the correct callbacks
-   *
+   */
+  ros::Subscriber scan_subscriber = nh.subscribe(TOPIC_MAP, 30, callback_map);
+
+  //  ros::Subscriber scan_subscriber2 = nh.subscribe(TOPIC_INITIALPOSE, 30, callback_initialpose);
+
+  //  ros::Subscriber scan_subscriber3 = nh.subscribe(TOPIC_SCAN, 30, callback_scan);
+
+  /*
    * Advertise the following topic:
    * /odom_out [nav_msgs::Odometry]
    */
-  // TODO
+  pub_odom = nh.advertise<nav_msgs::Odometry>(TOPIC_ODOM, 10);
 
   // Scan advertiser for visualization purposes
   pub_scan = nh.advertise<sensor_msgs::LaserScan>("/scan_out", 10);
@@ -58,7 +71,8 @@ int main(int argc, char** argv) {
   ROS_INFO("Node started. Waiting for input data");
 
   // Spin the node
-  // TODO
+  ros::spin();
+  
   return 0;
 }
 
@@ -67,9 +81,18 @@ void callback_map(const nav_msgs::OccupancyGridConstPtr& msg_) {
    * load the incoming occupancyGrid and
    * set the localizer map accordingly
    * Remember to load the map only once during the execution of the map.
-   */
+  */
+  std::cerr<< "START callback_map"<<std::endl;
 
-  // TODO
+  if (!map_ptr->initialized()){
+    std::cerr<< "map initialized"<<std::endl;
+
+    map_ptr->loadOccupancyGrid(msg_);
+    
+    localizer.setMap(map_ptr);
+  }
+    std::cerr<< "End callback_map"<<std::endl;
+
 }
 
 void callback_initialpose(

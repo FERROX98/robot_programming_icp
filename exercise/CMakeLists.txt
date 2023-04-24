@@ -10,7 +10,7 @@ find_package(OpenCV REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
     roscpp
     nav_msgs
-    geometry_msgs
+    geometry_msgs 
     sensor_msgs
     visualization_msgs
     tf2_ros)
@@ -40,18 +40,26 @@ target_link_libraries(icp PUBLIC Eigen3::Eigen)
 # - src/nicp/eigen_nicp_2d.cpp
 # - src/nicp/normal_estimator.cpp
 # It depends on Eigen and icp
-# TODO
+add_library(nicp SHARED src/nicp/eigen_nicp_2d.cpp src/nicp/normal_estimator.cpp)
+target_include_directories(nicp PUBLIC ${catkin_INCLUDE_DIRS} include/nicp)
+target_link_libraries(nicp ${catkin_LIBRARIES} Eigen3::Eigen icp)
+
 
 # Create rules for the normal_localizer2d library
 # source files are:
 # - src/normal_localizer2d.cpp
 # - src/ros_bridge.cpp
 # It depends on ROS packages (catkin), Eigen, nicp and map
-# TODO
+add_library(normal_localizer2d SHARED src/normal_localizer2d.cpp src/ros_bridge.cpp)
+target_include_directories(normal_localizer2d PUBLIC ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} include)
+target_link_libraries(normal_localizer2d ${catkin_LIBRARIES} Eigen3::Eigen ${OpenCV_LIBRARIES} nicp map)
 
 # Create rules for the localizer_node (located in bin/localizer_node.cpp)
 # It depends on ROS packages (catkin), Eigen, map and normal_localizer2d
-# TODO
+add_executable(localizer_node bin/localizer_node.cpp)
+target_include_directories(localizer_node PUBLIC include include/nicp include/icp ${catkin_INCLUDE_DIRS})
+target_link_libraries(localizer_node ${catkin_LIBRARIES} Eigen3::Eigen ${OpenCV_LIBRARIES} map normal_localizer2d)
+#add_dependencies(localizer_node nicp_localization_generate_messages_cpp)
 
 # Once nicp and normal_localizer2d libraries are built
 # you can uncomment the compilation of normal_viewer node

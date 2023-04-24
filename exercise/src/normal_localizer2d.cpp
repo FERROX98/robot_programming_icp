@@ -47,6 +47,7 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
           break;
             
     }
+    
    
   /*
    * If the map is initialized, fill a temporary vector with world coordinates
@@ -64,6 +65,7 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
   // Create KD-Tree
   _obst_tree_ptr = std::shared_ptr<TreeType>(new TreeType(_obst_vect.begin(), _obst_vect.end(), 20));
 
+}
 }
 
 /**

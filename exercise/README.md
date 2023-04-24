@@ -19,7 +19,7 @@ Your task is to complete the `NormalLocalizer2D` class (located in `include/norm
 
 **IMPORTANT**: If you don't implement a really nice prediction (see later), NormalICP will fail localizing on some parts of the map. This is expected due to a resolution mismatch between the scan coming from stage and the predicted scan using the kd-tree. __We do not expect you to fix this issue__, however if you want, try visualizing the prediction (using OpenCV or RViz) and implement a more suitable prediction function (maybe with raycasting on the map, or using SDF functions).
 
-# Obstacle Registration
+# Obstacle Registration (Daniel)
 Before starting the localizer, the node should receive both the map and its metadata from ROS. We implemented for you a `Map` class (located in `include/map.h`) that already parse these informations for you.
 
 It provides informations regarding the size (rows and columns) of the map and easy accessors.
@@ -35,10 +35,10 @@ These values are enumerated as a `CellType` (located in `include/map.h`).
 
 - Complete the `NormalLocalizer2D::setMap` method, which explores the map and register all obstacles into a KD-Tree.
 
-# Initial Pose
+# Initial Pose (Guido)
 Using `RViz`, you can initialize the localizer by setting an initial estimate for the localizer. To do so, subscribe to the `/initialpose` topic and update the localizer pose based on the messages received (`NormalLocalizer2D::setInitialPose`)
 
-# Normal ICP
+# Normal ICP (Daniel)
 One of the major pitfalls of P2P ICP (point-to-point) is the number of local minima solutions caused by wrong correspondences computed during the alignment process. The cause relates to the nearest neighbors approach used to compute the correspondences, and the sparsity of the scan itself.
 
 Integrating surface information during the alignment process, allows the moving cloud to "slide" along planar surfaces thus removing most of the local minima constrained solutions.
@@ -51,7 +51,7 @@ The normals are computed by the `NormalEstimator` (located in `include/nicp/norm
 
 Furthermore, the ICP module should be slightly adjusted to handle `PointNormal2f` types. We provided some initial definitions in the `include/nicp/eigen_nicp_2d.h` header.
 
-# Normal Estimation
+# Normal Estimation (Guido, Daniel)
 To augment a scan using normals, you have to implement the `NormalEstimator` class (located at `include/nicp/normal_estimator.h` and `src/nicp/normal_estimator.cpp`).
 The procedure for generating the normals is the following:
 
@@ -88,12 +88,12 @@ You can use the `computeMeanAndCovariance` (found in `include/icp/eigen_covarian
 We also provide the `normal_viewer` node (found in `bin/normal_viewer.cpp`) to verify that the normals are correctly computed.
 
 
-# Localization
-Once a scan and a sufficiently close initial pose estimate is given, the localizer can process the data and attempt localization (`NormalLocalizer2D::process`):
-- Generate a scan prediction taken at the initial pose and augment it with normals (`NormalLocalizer2D::getPrediction`)
-- Set the NICP solver initial guess equal to the initial pose.
-- Run NICP between the input scan and the prediction scan.
-- Update the current pose of the laser based on the solver solution.
+# Localization (Guido primi 1,2, Daniel 3,4 pt)
+Once a scan and a sufficienly close initial pose estimate is given, the localizer can process the data and attempt localization (`NormalLocalizer2D::process`):
+1 Generate a scan prediction taken at the initial pose and augment it with normals (`NormalLocalizer2D::getPrediction`)
+2 Set the NICP solver initial guess equal to the initial pose.
+3 Run NICP between the input scan and the prediction scan.
+4 Update the current pose of the laser based on the solver solution.
 
 To generate the prediction, remember to also load range and angular parameters of the input scan to the localizer (`NormalLocalizer2D::setLaserParams`).
 

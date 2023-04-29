@@ -68,10 +68,6 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
 
 }
 }
-void NormalLocalizer2D::initialPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
-{
-  this->current_pose = msg->pose.pose;
-}
 /**
  * @brief Set the current estimate for laser_in_world
  *
@@ -79,7 +75,7 @@ void NormalLocalizer2D::initialPoseCallback(const geometry_msgs::PoseWithCovaria
  */
 void NormalLocalizer2D::setInitialPose(const Eigen::Isometry2f& initial_pose_) {
   // TODO
-
+  this->_laser_in_world = initial_pose_;
 
 }
 
@@ -127,6 +123,7 @@ void NormalLocalizer2D::setLaserParams(float range_min_, float range_max_,
                                         float angle_min_, float angle_max_,
                                         float angle_increment_) {
   // TODO
+  
 }
 
 /**

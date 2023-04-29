@@ -123,7 +123,12 @@ void NormalLocalizer2D::setLaserParams(float range_min_, float range_max_,
                                         float angle_min_, float angle_max_,
                                         float angle_increment_) {
   // TODO
-  
+  this->_range_min = range_min_;
+  this->_range_max = range_max_;
+  this->_angle_min = angle_min_;
+  this->_angle_max = angle_max_;
+  this->_angle_increment = angle_increment_;
+
 }
 
 /**

@@ -27,13 +27,6 @@ class NormalLocalizer2D {
    */
   void setMap(std::shared_ptr<Map> map_);
 
-
-/**
- * @brief Callback used into set initialpose method
- * 
- * @param msg 
- */
-  void initialPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
   /**
    * @brief Set the current estimate for laser_in_world
    *
@@ -71,12 +64,11 @@ class NormalLocalizer2D {
    *
    * @return const Eigen::Isometry2f&
    */
-  inline const Eigen::Isometry2f& X() const { return _laser_in_world; }
+  inline const Eigen::Isometry2f& getCurrentLaserPose() const { return _laser_in_world; }
 
  protected:
   std::shared_ptr<Map> _map;
   Eigen::Isometry2f _laser_in_world;
-  geometry_msgs::Pose current_pose;
 
   // Obstacles vector
   LaserContainerType _obst_vect;

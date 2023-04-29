@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
    */
   ros::Subscriber scan_subscriber = nh.subscribe(TOPIC_MAP, 30, callback_map);
 
-  //  ros::Subscriber scan_subscriber2 = nh.subscribe(TOPIC_INITIALPOSE, 30, callback_initialpose);
+   ros::Subscriber scan_subscriber2 = nh.subscribe(TOPIC_INITIALPOSE, 30, callback_initialpose);
 
   //  ros::Subscriber scan_subscriber3 = nh.subscribe(TOPIC_SCAN, 30, callback_scan);
 
@@ -102,7 +102,12 @@ void callback_initialpose(
    * inform the localizer.
    */
 
-  // TODO
+  geometry_msgs::Pose current_pose;
+  current_pose = msg_->pose.pose;
+  Eigen::Isometry2f iso;
+  pose2isometry(current_pose,iso);
+  localizer.setInitialPose(iso);
+
 }
 
 void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {

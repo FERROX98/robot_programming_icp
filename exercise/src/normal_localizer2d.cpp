@@ -3,6 +3,7 @@
 #include "nicp/eigen_nicp_2d.h"
 #include "nicp/normal_estimator.h"
 
+
 NormalLocalizer2D::NormalLocalizer2D()
     : _map(nullptr),
       _laser_in_world(Eigen::Isometry2f::Identity()),
@@ -67,7 +68,6 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
 
 }
 }
-
 /**
  * @brief Set the current estimate for laser_in_world
  *
@@ -75,6 +75,8 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
  */
 void NormalLocalizer2D::setInitialPose(const Eigen::Isometry2f& initial_pose_) {
   // TODO
+  this->_laser_in_world = initial_pose_;
+
 }
 
 /**
@@ -121,6 +123,12 @@ void NormalLocalizer2D::setLaserParams(float range_min_, float range_max_,
                                         float angle_min_, float angle_max_,
                                         float angle_increment_) {
   // TODO
+  this->_range_min = range_min_;
+  this->_range_max = range_max_;
+  this->_angle_min = angle_min_;
+  this->_angle_max = angle_max_;
+  this->_angle_increment = angle_increment_;
+
 }
 
 /**

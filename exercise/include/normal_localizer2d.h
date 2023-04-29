@@ -5,6 +5,8 @@
 
 #include "icp/eigen_kdtree.h"
 #include "map.h"
+#include "ros/ros.h"
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 class NormalLocalizer2D {
  public:
@@ -24,6 +26,7 @@ class NormalLocalizer2D {
    * @param map_
    */
   void setMap(std::shared_ptr<Map> map_);
+
   /**
    * @brief Set the current estimate for laser_in_world
    *
@@ -61,7 +64,7 @@ class NormalLocalizer2D {
    *
    * @return const Eigen::Isometry2f&
    */
-  inline const Eigen::Isometry2f& X() const { return _laser_in_world; }
+  inline const Eigen::Isometry2f& getCurrentLaserPose() const { return _laser_in_world; }
 
  protected:
   std::shared_ptr<Map> _map;

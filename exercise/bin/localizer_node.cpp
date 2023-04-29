@@ -55,9 +55,9 @@ int main(int argc, char** argv) {
    */
   ros::Subscriber scan_subscriber = nh.subscribe(TOPIC_MAP, 30, callback_map);
 
-  //  ros::Subscriber scan_subscriber2 = nh.subscribe(TOPIC_INITIALPOSE, 30, callback_initialpose);
+   ros::Subscriber scan_subscriber2 = nh.subscribe(TOPIC_INITIALPOSE, 30, callback_initialpose);
 
-  //  ros::Subscriber scan_subscriber3 = nh.subscribe(TOPIC_SCAN, 30, callback_scan);
+   ros::Subscriber scan_subscriber3 = nh.subscribe(TOPIC_SCAN, 30, callback_scan);
 
   /*
    * Advertise the following topic:
@@ -102,7 +102,12 @@ void callback_initialpose(
    * inform the localizer.
    */
 
-  // TODO
+  geometry_msgs::Pose current_pose;
+  current_pose = msg_->pose.pose;
+  Eigen::Isometry2f iso;
+  pose2isometry(current_pose,iso);
+  localizer.setInitialPose(iso);
+
 }
 
 void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
@@ -110,19 +115,25 @@ void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
    * Convert the LaserScan message into a Localizer2D::ContainerType
    * [std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>]
    */
-  // TODO
+    NormalLocalizer2D::LaserContainerType laser_;
+    scan2eigen(msg_,laser_);
+
   /**
    * Augment every point in scan with normals.
    * Use the NormalEstimator
    *
    */
-  // TODO
+  NormalEstimator n_est = NormalEstimator(laser_,40);
+  NormalEstimator::NormalLaserScanType scan_with_normals;
+  n_est.get(scan_with_normals);
+
 
   /**
    * Set the laser parameters and process the incoming scan through the
    * localizer
    */
-  // TODO
+  localizer.setLaserParams(msg_->range_min,msg_->range_max,msg_->angle_min,msg_->angle_max,msg_->angle_increment);
+
 
   /**
    * Send a transform message between FRAME_WORLD and FRAME_LASER.
@@ -136,7 +147,13 @@ void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
    * received message (msg_->header.stamp)
    */
   static tf2_ros::TransformBroadcaster br;
-  // TODO
+  geometry_msgs::TransformStamped trans_msg;
+  std::string frame_id_;
+  std::string child_frame_id_;
+  ros::Time stamp_ = msg_->header.stamp;
+  isometry2transformStamped(localizer.getCurrentLaserPose(),trans_msg,frame_id_,child_frame_id_,stamp_);
+
+
 
   /**
    * Send a nav_msgs::Odometry message containing the current laser_in_world
@@ -144,8 +161,9 @@ void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
    * You can use transformStamped2odometry to convert the previously computed
    * TransformStamped message to a nav_msgs::Odometry message.
    */
-  // TODO
-
+  nav_msgs::Odometry odo_msg;
+  transformStamped2odometry(trans_msg,odo_msg);
+  pub_odom.publish(odo_msg);
   // Sends a copy of msg_ with FRAME_LASER set as frame_id
   // Used to visualize the scan attached to the current laser estimate.
   sensor_msgs::LaserScan out_scan = *msg_;

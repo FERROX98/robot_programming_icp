@@ -55,9 +55,9 @@ int main(int argc, char** argv) {
    */
   ros::Subscriber scan_subscriber = nh.subscribe(TOPIC_MAP, 30, callback_map);
 
-   ros::Subscriber scan_subscriber2 = nh.subscribe(TOPIC_INITIALPOSE, 30, callback_initialpose);
+  ros::Subscriber scan_subscriber2 = nh.subscribe(TOPIC_INITIALPOSE, 30, callback_initialpose);
 
-   ros::Subscriber scan_subscriber3 = nh.subscribe(TOPIC_SCAN, 30, callback_scan);
+  ros::Subscriber scan_subscriber3 = nh.subscribe(TOPIC_SCAN, 30, callback_scan);
 
   /*
    * Advertise the following topic:
@@ -95,13 +95,13 @@ void callback_map(const nav_msgs::OccupancyGridConstPtr& msg_) {
 
 }
 
+//GUIDO
 void callback_initialpose(
     const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg_) {
   /**
    * Convert the PoseWithCovarianceStamped message to an Eigen Isometry and
    * inform the localizer.
    */
-
   geometry_msgs::Pose current_pose;
   current_pose = msg_->pose.pose;
   Eigen::Isometry2f iso;
@@ -110,13 +110,14 @@ void callback_initialpose(
 
 }
 
+
 void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
   /**
    * Convert the LaserScan message into a Localizer2D::ContainerType
    * [std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>]
    */
-    NormalLocalizer2D::LaserContainerType laser_;
-    scan2eigen(msg_,laser_);
+  NormalLocalizer2D::LaserContainerType laser_;
+  scan2eigen(msg_,laser_);
 
   /**
    * Augment every point in scan with normals.
@@ -133,7 +134,7 @@ void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
    * localizer
    */
   localizer.setLaserParams(msg_->range_min,msg_->range_max,msg_->angle_min,msg_->angle_max,msg_->angle_increment);
-
+  localizer.process(scan_with_normals);
 
   /**
    * Send a transform message between FRAME_WORLD and FRAME_LASER.
@@ -148,12 +149,12 @@ void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
    */
   static tf2_ros::TransformBroadcaster br;
   geometry_msgs::TransformStamped trans_msg;
-  std::string frame_id_;
-  std::string child_frame_id_;
+  std::string frame_id_= FRAME_WORLD;
+  std::string child_frame_id_= FRAME_LASER;
   ros::Time stamp_ = msg_->header.stamp;
   isometry2transformStamped(localizer.getCurrentLaserPose(),trans_msg,frame_id_,child_frame_id_,stamp_);
-
-
+  
+  br.sendTransform(trans_msg);
 
   /**
    * Send a nav_msgs::Odometry message containing the current laser_in_world

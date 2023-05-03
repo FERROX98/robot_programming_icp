@@ -62,6 +62,6 @@ target_link_libraries(localizer_node ${catkin_LIBRARIES} Eigen3::Eigen ${OpenCV_
 
 # Once nicp and normal_localizer2d libraries are built
 # you can uncomment the compilation of normal_viewer node
-# add_executable(normal_viewer bin/normal_viewer.cpp)
-# target_include_directories(normal_viewer PRIVATE ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
-# target_link_libraries(normal_viewer PRIVATE ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} nicp normal_localizer2d)
+add_executable(normal_viewer bin/normal_viewer.cpp)
+target_include_directories(normal_viewer PRIVATE ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(normal_viewer PRIVATE ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} nicp normal_localizer2d)

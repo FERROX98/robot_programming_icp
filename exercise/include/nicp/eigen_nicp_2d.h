@@ -46,6 +46,8 @@ class NICP {
 
   void optimizeCorrespondences();
 
+  void computeCorrespondences();
+
   void run(int max_iterations);
 
   const Eigen::Isometry2f& X() const { return _X; }
@@ -63,5 +65,7 @@ class NICP {
   float _kernel_chi2 = 1;
   float _chi2_sum = 0;
   Eigen::Matrix<float, 3, 1> _dx;
-  // TODO
+  
+  using TreeNodeType = TreeNode_<typename ContainerType::iterator>;
+  TreeNodeType _kd_tree;
 };

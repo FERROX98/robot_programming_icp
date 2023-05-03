@@ -8,15 +8,16 @@
 
 using namespace std;
 
-// TODO
+// TODO correspondeces
 NICP::NICP(const ContainerType& fixed_, const ContainerType& moving_,
-           int min_points_in_leaf)
-    : _fixed_original(fixed_), _fixed(fixed_), _moving(moving_) {}
+          int min_points_in_leaf)
+    : _fixed_original(fixed_), _fixed(fixed_), _moving(moving_),
+    _kd_tree(_fixed.begin(),_fixed.end(),20) {}
 
 inline Vector2f skew(const Vector2f& v) { return Vector2f(v(1), -v(0)); }
 
 inline void errorAndJacobian(Eigen::Vector3f& e, Eigen::Matrix3f& J,
-                             const PointNormal2f& m, const PointNormal2f& f) {
+                            const PointNormal2f& m, const PointNormal2f& f) {
   const Vector2f pm = m.head<2>();
   const Vector2f nm = m.tail<2>();
   const Vector2f pf = f.head<2>();
@@ -26,6 +27,21 @@ inline void errorAndJacobian(Eigen::Vector3f& e, Eigen::Matrix3f& J,
   J.block<1, 2>(0, 0) = (nm + nf).transpose();
   J(0, 2) = pm.dot(skew(nf)) + pf.dot(skew(nm));
   J.block<2, 1>(1, 2) = -skew(nm);
+}
+
+void NICP::computeCorrespondences() {
+  _correspondences.resize(_moving.size());
+  int k = 0;
+  
+  for (const auto& m : _moving) {
+    const auto& mt = _X * m;
+    auto ft = _kd_tree.bestMatchFast(mt, _ball_radius);
+    if (!ft) continue;
+    _correspondences[k]._fixed = *ft;
+    _correspondences[k]._moving = mt;
+    ++k;
+  }
+  _correspondences.resize(k);
 }
 
 void NICP::optimizeCorrespondences() {
@@ -65,5 +81,10 @@ void NICP::optimizeCorrespondences() {
 }
 
 void NICP::run(int max_iterations) {
-  // TODO
+  int current_iteration = 0;
+  while (current_iteration < max_iterations) {
+    computeCorrespondences();
+    optimizeCorrespondences();
+    ++current_iteration;
+  }
 }

@@ -16,6 +16,8 @@ NormalLocalizer2D::NormalLocalizer2D()
  * @param map_
  */
 void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
+
+  std::cerr<<"SetMap"<<std::endl;
   
   // Set the internal map pointer
   std::shared_ptr<Map> mappa= map_;
@@ -26,25 +28,30 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
   // Da salvare direttamente su _obst_vect 
   // std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Vector2f>> temp_vector;
    if ( mappa->initialized() ){
+  
     std::cerr<<"START setMap"<<std::endl;
-    int test=0;
-
+    int log=0;
+    
     for (int i=0; i<mappa->rows();++i){
       for (int j=0; j<mappa->cols(); ++j){
         if(((CellType) mappa->grid().at(j+i*mappa->cols())) == Occupied){
-            if (test){
+          
+            if (log){
               std::cerr<< "\n push cell occupied"<<std::endl;
             }
+
             _obst_vect.push_back(mappa->grid2world(cv::Point2i(i,j)));
         }
-        if (test){
+
+        if (log){
           std::cerr <<"\n CellType ="<< (CellType) mappa->grid().at(j+i*mappa->cols()) <<" Grid coord x,y = "<< cv::Point2i(i,j)<<" World Coord -> " <<  mappa->grid2world(cv::Point2i(i,j)) << " END "<<std::endl;
         }
-        if (test && j==10)
+
+        if (log && j==10)
                 break;
         }
 
-      if (test && i==0)
+      if (log && i==0)
           break;
             
     }
@@ -53,7 +60,7 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
    * If the map is initialized, fill a temporary vector with world coordinates
    * of all cells representing obstacles.
    * Moreover, process normals for these points and store the resulting cloud
-   * (with normals) (FIXED SENZA NORMALI) in _obst_vect (Vector2f).
+   * (FIXED SENZA NORMALI) in _obst_vect (Vector2f).
    * Finally instantiate the KD-Tree (obst_tree_ptr) on the vector.
    */
   NormalEstimator norm(_obst_vect,20); // scan Vector4f (x,y) (z,v) 
@@ -68,6 +75,7 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
  * @param initial_pose_
  */ //GUIDO
 void NormalLocalizer2D::setInitialPose(const Eigen::Isometry2f& initial_pose_) {
+  std::cerr<<"setInitialPose"<<std::endl;
   this->_laser_in_world = initial_pose_;
 
 }
@@ -80,6 +88,8 @@ void NormalLocalizer2D::setInitialPose(const Eigen::Isometry2f& initial_pose_) {
  *///DANIEL
 void NormalLocalizer2D::process(const ContainerType& scan_) {
   // Use initial pose to get a synthetic scan to compare with scan_
+    std::cerr<<"process"<<std::endl;
+
     //TODO
    ContainerType prediction;
     getPrediction(prediction);
@@ -89,15 +99,19 @@ void NormalLocalizer2D::process(const ContainerType& scan_) {
    * Set the current estimate of laser in world as initial guess (replace the
    * solver X before running ICP)
    */
-  NICP solver(prediction, scan_,4);
-  
+  NICP solver(prediction,scan_,20);
+  // replace the
+  Eigen::Isometry2f& X_=solver.X();
+  X_=_laser_in_world;
+ //  * solver X before running ICP)
   solver.run(200);
   /**
    * Store the solver result (X) as the new laser_in_world estimate
    *
    */
-  _laser_in_world=_laser_in_world*solver.X();
-  
+  //_laser_in_world=_laser_in_world*solver.X();
+    _laser_in_world=solver.X();
+
 }
 
 /**
@@ -119,6 +133,8 @@ void NormalLocalizer2D::process(const ContainerType& scan_) {
 void NormalLocalizer2D::setLaserParams(float range_min_, float range_max_,
                                         float angle_min_, float angle_max_,
                                         float angle_increment_) {
+                                              //std::cerr<<"setLaserParams"<<std::endl;
+
   this->_range_min = range_min_;
   this->_range_max = range_max_;
   this->_angle_min = angle_min_;
@@ -126,37 +142,40 @@ void NormalLocalizer2D::setLaserParams(float range_min_, float range_max_,
   this->_angle_increment = angle_increment_;
 
 }
-
 /**
  * @brief Computes the predicted scan at the current laser_in_world pose
  * estimate.
  *
  * @param dest_ Output predicted scan
- *///DANIEL
+ */
 void NormalLocalizer2D::getPrediction(ContainerType& prediction_) {
   prediction_.clear();
+  std::cerr<<"getPrediction"<<std::endl;
   /*
    * To compute the prediction, query the KD-Tree and search for all points
    * around the current laser_in_world estimate.
   */ 
-  
-  std::vector<NormalLocalizer2D::LaserPointType*> _obst_vect_search(_obst_vect.size());
 
-      for (size_t i = 0; i < _obst_vect.size(); ++i) {
-          _obst_vect_search[i] = &_obst_vect[i];
-      }
-      // / using LaserContainerType =
-     // std::vector<LaserPointType, Eigen::aligned_allocator<LaserPointType>>;
-
-      
-  _obst_tree_ptr->fullSearch(_obst_vect_search, _laser_in_world.translation(), _laser_in_world.translation().norm());
   /*
    * You may use additional sensor's informations to refine the prediction.
    * After the prediction is made, augment it with normals using the
    * NormalEstimator
    */
 
-    NormalEstimator norm(_obst_vect,20); // scan Vector4f (x,y) (z,v) 
-    norm.get(prediction_);
+  std::vector<LaserPointType*> nearby_points;
+  const float max_distance = (_range_min+_range_max)/2; 
+  _obst_tree_ptr->fullSearch(nearby_points, _laser_in_world.translation(), max_distance);
+
+  std::cerr<< "size "<<_laser_in_world.linear().size()<<std::endl;
+  NormalLocalizer2D::LaserContainerType prediction_temp;
+ 
+  for (auto it = nearby_points.begin(); it != nearby_points.end(); ++it) {
+    prediction_temp.push_back(**it);
   }
+
   
+  NormalEstimator ne(prediction_temp, 10); 
+  ne.get(prediction_);
+
+
+}

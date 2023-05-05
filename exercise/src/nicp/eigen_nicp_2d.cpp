@@ -12,7 +12,7 @@ using namespace std;
 NICP::NICP(const ContainerType& fixed_, const ContainerType& moving_,
           int min_points_in_leaf)
     : _fixed_original(fixed_), _fixed(fixed_), _moving(moving_),
-    _kd_tree(_fixed.begin(),_fixed.end(),20) {}
+    _kd_tree(_fixed.begin(),_fixed.end(),min_points_in_leaf) {}
 
 inline Vector2f skew(const Vector2f& v) { return Vector2f(v(1), -v(0)); }
 

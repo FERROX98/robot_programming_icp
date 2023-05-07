@@ -16,10 +16,10 @@
 #include "normal_localizer2d.h"
 #include "ros_bridge.h"
 
-const std::string TOPIC_SCAN = "base_scan";
-const std::string TOPIC_INITIALPOSE = "initialpose";
-const std::string TOPIC_ODOM = "odom_out";
-const std::string TOPIC_MAP = "map";
+const std::string TOPIC_SCAN = "/base_scan";
+const std::string TOPIC_INITIALPOSE = "/initialpose";
+const std::string TOPIC_ODOM = "/odom_out";
+const std::string TOPIC_MAP = "/map";
 const int num_leaf = 20;
 
 // Map callback definition

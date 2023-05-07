@@ -20,6 +20,7 @@ const std::string TOPIC_SCAN = "base_scan";
 const std::string TOPIC_INITIALPOSE = "initialpose";
 const std::string TOPIC_ODOM = "odom_out";
 const std::string TOPIC_MAP = "map";
+const int num_leaf = 20;
 
 // Map callback definition
 void callback_map(const nav_msgs::OccupancyGridConstPtr&);
@@ -124,7 +125,7 @@ void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
    * Use the NormalEstimator
    *
    */
-  NormalEstimator n_est = NormalEstimator(laser_,40);
+  NormalEstimator n_est = NormalEstimator(laser_,num_leaf);
   NormalEstimator::NormalLaserScanType scan_with_normals;
   n_est.get(scan_with_normals);
 

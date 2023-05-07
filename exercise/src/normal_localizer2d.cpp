@@ -3,6 +3,9 @@
 #include "nicp/eigen_nicp_2d.h"
 #include "nicp/normal_estimator.h"
 
+const int num_leaf = 20;
+int flg_log=0;
+
 
 NormalLocalizer2D::NormalLocalizer2D()
     : _map(nullptr),
@@ -30,45 +33,30 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
    if ( mappa->initialized() ){
   
     std::cerr<<"START setMap"<<std::endl;
-    int log=0;
-    
+
     for (int i=0; i<mappa->rows();++i){
       for (int j=0; j<mappa->cols(); ++j){
         if(((CellType) mappa->grid().at(j+i*mappa->cols())) == Occupied){
-          
-            if (log){
-              std::cerr<< "\n push cell occupied"<<std::endl;
-            }
 
             _obst_vect.push_back(mappa->grid2world(cv::Point2i(i,j)));
         }
+      } 
 
-        if (log){
-          std::cerr <<"\n CellType ="<< (CellType) mappa->grid().at(j+i*mappa->cols()) <<" Grid coord x,y = "<< cv::Point2i(i,j)<<" World Coord -> " <<  mappa->grid2world(cv::Point2i(i,j)) << " END "<<std::endl;
-        }
-
-        if (log && j==10)
-                break;
-        }
-
-      if (log && i==0)
-          break;
-            
     }
     
   /*
-   * If the map is initialized, fill a temporary vector with world coordinates
-   * of all cells representing obstacles.
    * Moreover, process normals for these points and store the resulting cloud
    * (FIXED SENZA NORMALI) in _obst_vect (Vector2f).
    * Finally instantiate the KD-Tree (obst_tree_ptr) on the vector.
    */
-  NormalEstimator norm(_obst_vect,20); // scan Vector4f (x,y) (z,v) 
+  NormalEstimator norm(_obst_vect,num_leaf); // scan Vector4f (x,y) (z,v) 
 
   // Create KD-Tree
-  _obst_tree_ptr = std::shared_ptr<TreeType>(new TreeType(_obst_vect.begin(), _obst_vect.end(), 20));
+  _obst_tree_ptr = std::shared_ptr<TreeType>(new TreeType(_obst_vect.begin(), _obst_vect.end(), num_leaf));
    } 
 }
+
+
 /**
  * @brief Set the current estimate for laser_in_world
  *
@@ -88,28 +76,38 @@ void NormalLocalizer2D::setInitialPose(const Eigen::Isometry2f& initial_pose_) {
  *///DANIEL
 void NormalLocalizer2D::process(const ContainerType& scan_) {
   // Use initial pose to get a synthetic scan to compare with scan_
-    std::cerr<<"process"<<std::endl;
 
-    //TODO
-   ContainerType prediction;
-    getPrediction(prediction);
+  //std::cerr<<"process"<<std::endl;
+
+  ContainerType prediction;
+  getPrediction(prediction);
     
   /**
    * Align prediction and scan_ using ICP.
    * Set the current estimate of laser in world as initial guess (replace the
    * solver X before running ICP)
    */
-  NICP solver(prediction,scan_,20);
+
+  if (prediction.size()==0)
+    {
+      prediction=scan_;
+    }
+  
+  NICP solver(prediction,scan_,num_leaf);
+  
   // replace the
   Eigen::Isometry2f& X_=solver.X();
-  X_=_laser_in_world;
- //  * solver X before running ICP)
-  solver.run(200);
+
+  X_= _laser_in_world;
+
+  solver.run(50);
+
   /**
    * Store the solver result (X) as the new laser_in_world estimate
    *
    */
-  //_laser_in_world=_laser_in_world*solver.X();
+
+
     _laser_in_world=solver.X();
 
 }
@@ -150,7 +148,9 @@ void NormalLocalizer2D::setLaserParams(float range_min_, float range_max_,
  */
 void NormalLocalizer2D::getPrediction(ContainerType& prediction_) {
   prediction_.clear();
+
   std::cerr<<"getPrediction"<<std::endl;
+
   /*
    * To compute the prediction, query the KD-Tree and search for all points
    * around the current laser_in_world estimate.
@@ -163,18 +163,22 @@ void NormalLocalizer2D::getPrediction(ContainerType& prediction_) {
    */
 
   std::vector<LaserPointType*> nearby_points;
-  const float max_distance = (_range_min+_range_max)/2; 
-  _obst_tree_ptr->fullSearch(nearby_points, _laser_in_world.translation(), max_distance);
 
-  std::cerr<< "size "<<_laser_in_world.linear().size()<<std::endl;
+
+  _obst_tree_ptr->fullSearch(nearby_points, _laser_in_world.translation(), _range_max);
+  
+  if (nearby_points.size()==0){ 
+      return;
+  } 
+
   NormalLocalizer2D::LaserContainerType prediction_temp;
- 
+
   for (auto it = nearby_points.begin(); it != nearby_points.end(); ++it) {
     prediction_temp.push_back(**it);
   }
-
+  NormalEstimator ne(prediction_temp, num_leaf); 
   
-  NormalEstimator ne(prediction_temp, 10); 
+
   ne.get(prediction_);
 
 

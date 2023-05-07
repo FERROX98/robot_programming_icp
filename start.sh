@@ -10,6 +10,10 @@ cd ..
 rviz -d test_data/rviz.rviz &> /dev/null & 
 rosrun map_server map_server test_data/cappero_map.yaml  &> /dev/null & 
 rosrun stage_ros stageros test_data/cappero.world &> /dev/null & 
+rosrun nicp_localization normal_viewer  &> /dev/null & 
+
 echo "END"
+#rosrun nicp_localization localizer_node 
+
 
 

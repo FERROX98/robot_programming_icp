@@ -41,6 +41,7 @@ void NormalLocalizer2D::setMap(std::shared_ptr<Map> map_) {
             _obst_vect.push_back(mappa->grid2world(cv::Point2i(i,j)));
         }
       } 
+
     }
     
   /*
@@ -75,6 +76,7 @@ void NormalLocalizer2D::setInitialPose(const Eigen::Isometry2f& initial_pose_) {
  *///DANIEL
 void NormalLocalizer2D::process(const ContainerType& scan_) {
   // Use initial pose to get a synthetic scan to compare with scan_
+
   //std::cerr<<"process"<<std::endl;
 
   ContainerType prediction;
@@ -85,6 +87,7 @@ void NormalLocalizer2D::process(const ContainerType& scan_) {
    * Set the current estimate of laser in world as initial guess (replace the
    * solver X before running ICP)
    */
+
   if (prediction.size()==0)
     {
       prediction=scan_;
@@ -98,10 +101,13 @@ void NormalLocalizer2D::process(const ContainerType& scan_) {
   X_= _laser_in_world;
 
   solver.run(50);
+
   /**
    * Store the solver result (X) as the new laser_in_world estimate
    *
    */
+
+
     _laser_in_world=solver.X();
 
 }
@@ -142,7 +148,9 @@ void NormalLocalizer2D::setLaserParams(float range_min_, float range_max_,
  */
 void NormalLocalizer2D::getPrediction(ContainerType& prediction_) {
   prediction_.clear();
-  //std::cerr<<"getPrediction"<<std::endl;
+
+  std::cerr<<"getPrediction"<<std::endl;
+
   /*
    * To compute the prediction, query the KD-Tree and search for all points
    * around the current laser_in_world estimate.
@@ -155,6 +163,7 @@ void NormalLocalizer2D::getPrediction(ContainerType& prediction_) {
    */
 
   std::vector<LaserPointType*> nearby_points;
+
 
   _obst_tree_ptr->fullSearch(nearby_points, _laser_in_world.translation(), _range_max);
   
@@ -169,6 +178,7 @@ void NormalLocalizer2D::getPrediction(ContainerType& prediction_) {
   }
   NormalEstimator ne(prediction_temp, num_leaf); 
   
+
   ne.get(prediction_);
 
 

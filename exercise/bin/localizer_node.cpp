@@ -20,7 +20,9 @@ const std::string TOPIC_SCAN = "/base_scan";
 const std::string TOPIC_INITIALPOSE = "/initialpose";
 const std::string TOPIC_ODOM = "/odom_out";
 const std::string TOPIC_MAP = "/map";
+
 const int num_leaf = 20;
+
 
 // Map callback definition
 void callback_map(const nav_msgs::OccupancyGridConstPtr&);
@@ -54,11 +56,11 @@ int main(int argc, char** argv) {
    * /base_scan [sensor_msgs::LaserScan]
    * and assign the correct callbacks
    */
-  ros::Subscriber scan_subscriber = nh.subscribe(TOPIC_MAP, 30, callback_map);
+  ros::Subscriber scan_subscriber = nh.subscribe(TOPIC_MAP, 10, callback_map);
 
-  ros::Subscriber scan_subscriber2 = nh.subscribe(TOPIC_INITIALPOSE, 30, callback_initialpose);
+  ros::Subscriber scan_subscriber2 = nh.subscribe(TOPIC_INITIALPOSE, 10, callback_initialpose);
 
-  ros::Subscriber scan_subscriber3 = nh.subscribe(TOPIC_SCAN, 30, callback_scan);
+  ros::Subscriber scan_subscriber3 = nh.subscribe(TOPIC_SCAN, 10, callback_scan);
 
   /*
    * Advertise the following topic:
@@ -103,6 +105,8 @@ void callback_initialpose(
    * Convert the PoseWithCovarianceStamped message to an Eigen Isometry and
    * inform the localizer.
    */
+    std::cerr<<"callback_initialpose"<<std::endl;
+
   geometry_msgs::Pose current_pose;
   current_pose = msg_->pose.pose;
   Eigen::Isometry2f iso;
@@ -117,6 +121,8 @@ void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
    * Convert the LaserScan message into a Localizer2D::ContainerType
    * [std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>]
    */
+   // std::cerr<<"callback_scan"<<std::endl;
+  
   NormalLocalizer2D::LaserContainerType laser_;
   scan2eigen(msg_,laser_);
 
@@ -165,6 +171,7 @@ void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
    */
   nav_msgs::Odometry odo_msg;
   transformStamped2odometry(trans_msg,odo_msg);
+  odo_msg.header.frame_id= FRAME_WORLD;
   pub_odom.publish(odo_msg);
   // Sends a copy of msg_ with FRAME_LASER set as frame_id
   // Used to visualize the scan attached to the current laser estimate.

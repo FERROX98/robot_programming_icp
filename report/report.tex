@@ -1,0 +1,69 @@
+
+\documentclass[]{article}  % will only accept 10pt, 11pt or 12pt font options
+%\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+%\usepackage[T1]{fontenc}
+\usepackage{imakeidx}
+\usepackage{geometry}
+%\usepackage{lmodern}
+%\usepackage[document]{ragged2e}
+%\usepackage{blindtext}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+\usepackage[export]{adjustbox}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Normal ICP Localization},
+    pdfpagemode=FullScreen,
+    }
+\urlstyle{same}
+\graphicspath{{image/}}
+
+
+
+%titolo
+\title{\textbf{Normal ICP Localization}}
+\author{\LARGE Daniel Ferro 1853855,\\ \LARGE \indent Guido Giuseppe Garozzo 2062108}
+\date{}
+\date{\vspace{15ex}\Large \today}
+
+\begin{document}
+\begin{figure}[t]
+    \includegraphics[width=1\textwidth, height=0.3\textheight]{logo_Sapienza_rgb.png}
+    \centering
+  \end{figure}
+\maketitle
+\clearpage
+
+
+%indici
+\renewcommand*\contentsname{Indici}
+\tableofcontents
+\clearpage
+
+\section{How to Compile}
+\Large
+Just run script  ./compile.sh, it will go in catkin workspace and run a catkin\_make command.
+\section{How to Run}
+Just run script  ./run.sh, it will go in nicp\textunderscore localization folder and run in background:
+
+\begin{itemize}
+    \item rviz 
+    \item map\_server
+    \item stage\_ros
+    \item stageros
+    \item normal\_viewer
+    \item localizer\_node
+\end{itemize}
+
+\section{How to Test}
+Set a initial pose using Rviz.
+\end{document}

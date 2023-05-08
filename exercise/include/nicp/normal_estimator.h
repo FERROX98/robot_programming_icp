@@ -21,4 +21,5 @@ class NormalEstimator {
   using TreeNodeType = TreeNode_<typename LaserScanType::iterator>;
   TreeNodeType _kd_tree;
   NormalLaserScanType _scan_with_normals;
+  int flg_log=0;
 };

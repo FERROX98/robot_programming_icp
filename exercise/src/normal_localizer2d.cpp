@@ -3,7 +3,7 @@
 #include "nicp/eigen_nicp_2d.h"
 #include "nicp/normal_estimator.h"
 
-const int num_leaf = 20;
+const int num_leaf = 10;
 int flg_log=0;
 
 
@@ -149,7 +149,7 @@ void NormalLocalizer2D::setLaserParams(float range_min_, float range_max_,
 void NormalLocalizer2D::getPrediction(ContainerType& prediction_) {
   prediction_.clear();
 
-  std::cerr<<"getPrediction"<<std::endl;
+ // std::cerr<<"getPrediction"<<std::endl;
 
   /*
    * To compute the prediction, query the KD-Tree and search for all points
@@ -165,7 +165,7 @@ void NormalLocalizer2D::getPrediction(ContainerType& prediction_) {
   std::vector<LaserPointType*> nearby_points;
 
 
-  _obst_tree_ptr->fullSearch(nearby_points, _laser_in_world.translation(), _range_max);
+  _obst_tree_ptr->fullSearch(nearby_points, _laser_in_world.translation(), _range_max/5);
   
   if (nearby_points.size()==0){ 
       return;

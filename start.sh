@@ -22,7 +22,7 @@ echo -e "normal_viewer started\n"
 echo -e "Complete\n"
 echo -e "Starting localizer_node\n" 
 echo "----------------------------"
-
+sleep 5
 rosrun nicp_localization localizer_node 
 
 

@@ -171,7 +171,6 @@ void callback_scan(const sensor_msgs::LaserScanConstPtr& msg_) {
    */
   nav_msgs::Odometry odo_msg;
   transformStamped2odometry(trans_msg,odo_msg);
-  odo_msg.header.frame_id= FRAME_WORLD;
   pub_odom.publish(odo_msg);
   // Sends a copy of msg_ with FRAME_LASER set as frame_id
   // Used to visualize the scan attached to the current laser estimate.

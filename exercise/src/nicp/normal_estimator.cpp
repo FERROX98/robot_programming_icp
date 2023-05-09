@@ -48,11 +48,11 @@ NormalEstimator::NormalEstimator(LaserScanType& src_, int max_points_in_leaf)
       Eigen::Matrix<float, 2, 2> cov;
       computeMeanAndCovariance(mean,cov, neighbors_of_p_values.begin(),neighbors_of_p_values.end());
   
-      //  Eigen::SelfAdjointEigenSolver<Eigen::Matrix2f> es;
-      //  es.compute(cov);
-      //Eigen::Vector2f eigenvectors_of_cov = es.eigenvectors().col(0);
-      Eigen::Vector2f normal_of_p = largestEigenVector(cov);//
-      // Eigen::Vector2f normal_of_p =es.eigenvectors().col(0);
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix2f> es;
+        es.compute(cov);
+    //  Eigen::Vector2f eigenvectors_of_cov = es.eigenvectors().col(0);
+     // Eigen::Vector2f normal_of_p = largestEigenVector(cov);//
+       Eigen::Vector2f normal_of_p =es.eigenvectors().col(0);
       //es.eigenvectors().col(0);//eigenvectors_of_cov.real();
 
 
